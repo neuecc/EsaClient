@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26730.12
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EsaClient", "EsaClient\EsaClient.csproj", "{E106CD24-80DC-4086-AA1C-C249867EBDF3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EsaClient.ConsoleApp", "EsaClient.ConsoleApp\EsaClient.ConsoleApp.csproj", "{70B31367-274F-4216-89EF-C53293FE4943}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E106CD24-80DC-4086-AA1C-C249867EBDF3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E106CD24-80DC-4086-AA1C-C249867EBDF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E106CD24-80DC-4086-AA1C-C249867EBDF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E106CD24-80DC-4086-AA1C-C249867EBDF3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{70B31367-274F-4216-89EF-C53293FE4943}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{70B31367-274F-4216-89EF-C53293FE4943}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{70B31367-274F-4216-89EF-C53293FE4943}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{70B31367-274F-4216-89EF-C53293FE4943}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DEC03BB7-4A2D-40AF-8D47-DDECF21574DB}
+	EndGlobalSection
+EndGlobal
