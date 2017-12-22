@@ -13,6 +13,8 @@ namespace EsaClient
 
         readonly HttpClient httpClient;
 
+        public Microsoft.Extensions.Logging.ILogger Logger { get; set; }
+
         public EsaClient(string token)
             : this(token, null)
         {
@@ -21,6 +23,7 @@ namespace EsaClient
         public EsaClient(string token, HttpMessageHandler innerHandler)
         {
             httpClient = new HttpClient(new BearerAuthenticationMessageHandler(token, innerHandler));
+            Logger = Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
         }
 
         StringBuilder BuildStringBuilderWithTeamName(string teamName)
@@ -46,10 +49,37 @@ namespace EsaClient
             var m = await message;
             if (!m.IsSuccessStatusCode)
             {
-                var error = await DeserializeAsync<ErrorResponse>(m.Content.ReadAsByteArrayAsync()).ConfigureAwait(false);
+                ErrorResponse error;
+                try
+                {
+                    error = await DeserializeAsync<ErrorResponse>(m.Content.ReadAsByteArrayAsync()).ConfigureAwait(false);
+                }
+                catch
+                {
+                    throw new Exception("Failed to deserialize, StatusCode:" + m.StatusCode + " ReasonPhrase:" + m.ReasonPhrase);
+                }
                 throw new EsaClientErrorException(error.error, error.message);
             }
+
             return await DeserializeAsync<T>(m.Content.ReadAsByteArrayAsync()).ConfigureAwait(false);
+        }
+
+        async Task ReadMessage(Task<HttpResponseMessage> message)
+        {
+            var m = await message;
+            if (!m.IsSuccessStatusCode)
+            {
+                ErrorResponse error;
+                try
+                {
+                    error = await DeserializeAsync<ErrorResponse>(m.Content.ReadAsByteArrayAsync()).ConfigureAwait(false);
+                }
+                catch
+                {
+                    throw new Exception("Failed to deserialize, StatusCode:" + m.StatusCode + " ReasonPhrase:" + m.ReasonPhrase);
+                }
+                throw new EsaClientErrorException(error.error, error.message);
+            }
         }
 
         async Task<T[]> ReadPaginiationMesasge<T>(string url)
@@ -59,7 +89,7 @@ namespace EsaClient
             var result = p.items;
             while (p.next_page != null)
             {
-                p = await ReadMessage<Pagination<T>>(httpClient.GetAsync(url)).ConfigureAwait(false);
+                p = await ReadMessage<Pagination<T>>(httpClient.GetAsync(url + "&page=" + p.next_page)).ConfigureAwait(false);
                 ConcatArray(ref result, p.items);
             }
 
@@ -68,8 +98,18 @@ namespace EsaClient
 
         void ConcatArray<T>(ref T[] array, T[] second)
         {
-            Array.Resize(ref array, array.Length + second.Length);
-            Array.Copy(array, array.Length, second, 0, second.Length);
+            var firstLength = array.Length;
+            Array.Resize(ref array, firstLength + second.Length);
+            Array.Copy(second, 0, array, firstLength, second.Length);
+        }
+
+        Task<TResponse> PostMessage<TRequest, TResponse>(string url, TRequest message)
+        {
+            var json = Utf8Json.JsonSerializer.Serialize<TRequest>(message, EsaJsonFormatterResolver.Instance);
+            var content = new ByteArrayContent(json);
+            content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
+            var response = httpClient.PostAsync(url, content);
+            return ReadMessage<TResponse>(response);
         }
 
         void AppendInclude(StringBuilder sb, PostIncludes includes)
@@ -160,7 +200,7 @@ namespace EsaClient
             return ReadMessage<Team>(url);
         }
 
-        public Task<Post[]> GetPostsAsync(string teamName, string query, PostIncludes include = PostIncludes.None, PostSort sort = PostSort.Updated, PostOrder order = PostOrder.Desc)
+        public Task<Post[]> GetPostsAsync(string teamName, string query, PostIncludes include = PostIncludes.None, PostSort sort = PostSort.Updated, PostOrder order = PostOrder.Desc, int perPage = 20)
         {
             var url = BuildStringBuilderWithTeamName(teamName);
             url.Append("/posts");
@@ -168,6 +208,7 @@ namespace EsaClient
             url.Append("&include="); AppendInclude(url, include);
             url.Append("&sort="); AppendSort(url, sort);
             url.Append("&order="); AppendOrder(url, order);
+            url.Append("&per_page="); url.Append(perPage);
 
             return ReadPaginiationMesasge<Post>(url.ToString());
         }
@@ -180,6 +221,25 @@ namespace EsaClient
             AppendInclude(url, include);
 
             return ReadMessage<Post>(httpClient.GetAsync(url.ToString()));
+        }
+
+        public Task<Post> CreateNewPostAsync(string teamName, NewPost post)
+        {
+            var url = BuildStringBuilderWithTeamName(teamName);
+            url.Append("/posts");
+
+            var postObject = new NewPostRequest { post = post };
+            return PostMessage<NewPostRequest, Post>(url.ToString(), postObject);
+        }
+
+        public Task DeletePostAsync(string teamName, int postNumber)
+        {
+            var url = BuildStringBuilderWithTeamName(teamName);
+            url.Append("/posts/");
+            url.Append(postNumber);
+
+            var message = httpClient.DeleteAsync(url.ToString());
+            return ReadMessage(message);
         }
     }
 }

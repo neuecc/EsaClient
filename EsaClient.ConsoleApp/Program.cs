@@ -1,4 +1,5 @@
-﻿using System;
+﻿using EsaClient.Toolkit;
+using System;
 using System.Threading.Tasks;
 
 namespace EsaClient.ConsoleApp
@@ -8,8 +9,15 @@ namespace EsaClient.ConsoleApp
         async static Task Run()
         {
             var esa = new EsaClient("");
+            esa.Logger = new Microsoft.Extensions.Logging.Console.ConsoleLogger("Console", (_, __) => true, true);
 
-            var huga = await esa.GetPostsAsync("grani", "");
+            //await esa.PostExportAsync(new[]
+            //{
+
+            //}, "", userAsEsaBot: true);
+
+
+
         }
 
         static void Main(string[] args)
@@ -17,6 +25,8 @@ namespace EsaClient.ConsoleApp
             try
             {
                 Run().GetAwaiter().GetResult();
+                Console.WriteLine("End");
+                Console.ReadLine();
             }
             catch (Exception ex)
             {

@@ -56,7 +56,26 @@ namespace EsaClient.Responses
         public int watchers_count { get; set; }
         public bool star { get; set; }
         public bool watch { get; set; }
+
+        public override string ToString()
+        {
+            return category + "/" + name;
+        }
     }
 
+    public class NewPostRequest
+    {
+        public NewPost post { get; set; }
+    }
 
+    public class NewPost
+    {
+        public string name { get; set; }
+        public string body_md { get; set; }
+        public string[] tags { get; set; }
+        public string category { get; set; }
+        public bool wip { get; set; }
+        public string message { get; set; }
+        public string user { get; set; }
+    }
 }
