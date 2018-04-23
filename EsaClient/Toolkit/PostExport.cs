@@ -18,7 +18,7 @@ namespace EsaClient.Toolkit
             public int PostNumber { get; set; }
         }
 
-        public static async Task PostExportAsync(this EsaClient client, string[] fromUrls, string toTeamName, bool userAsEsaBot = false)
+        public static async Task PostExportAsync(this EsaClient client, string[] fromUrls, string toTeamName,string toCategoryPre = "", bool userAsEsaBot = false)
         {
             var list = new List<From>();
             foreach (var item in fromUrls)
@@ -46,7 +46,7 @@ namespace EsaClient.Toolkit
                 var newPost = await client.CreateNewPostAsync(toTeamName, new NewPost
                 {
                     body_md = post.body_md,
-                    category = post.category,
+                    category = string.IsNullOrEmpty(toCategoryPre) ? post.category : (toCategoryPre.TrimEnd('/') + "/" + post.category.TrimStart('/')),
                     message = post.message,
                     name = post.name,
                     tags = post.tags,
